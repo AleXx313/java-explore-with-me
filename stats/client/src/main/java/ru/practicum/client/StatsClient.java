@@ -10,7 +10,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.dtos.EndpointHitDto;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -26,19 +25,25 @@ public class StatsClient {
                 .build();
     }
 
-    public ResponseEntity<Object> saveHit(EndpointHitDto dto){
+    public ResponseEntity<Object> saveHit(EndpointHitDto dto) {
         return makeAndSendRequest(HttpMethod.POST, "/hit", null, dto);
     }
 
-    public ResponseEntity<Object> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique){
+    //В клиент будут приходить закодированные параметры дат из основного сервиса.
+    //Раскодирование будет происходить уже в сервере.
+    public ResponseEntity<Object> getStats(String start, String end, List<String> uris, Boolean unique) {
+        String urisString = String.join(",", uris);
+
         Map<String, Object> parameters = Map.of(
                 "start", start,
                 "end", end,
-                "uris", uris,
+                "uris", urisString,
                 "unique", unique
         );
 
-        return makeAndSendRequest(HttpMethod.GET, "/stats", parameters, null);
+        String path = String.format("/stats?start=%s&end=%s&uris=%s&unique=%s", start, end, urisString, unique);
+
+        return makeAndSendRequest(HttpMethod.GET, path, parameters, null);
     }
 
 

@@ -1,26 +1,33 @@
 package ru.practicum.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class EndpointHitDto {
+    public EndpointHitDto(String app, String uri, String ip, String timestamp) {
+        this.app = app;
+        this.uri = uri;
+        this.ip = ip;
+        this.timestamp = timestamp;
+    }
 
-    @NotNull
+    private Long id;
+    @NotBlank
     @Size(max = 255)
     private String app;
-    @NotNull
+    @NotBlank
     @Size(max = 255)
     private String uri;
-    @NotNull
+    @NotBlank
     @Size(max = 16)
     private String ip;
-    private LocalDateTime hitTime = LocalDateTime.now();
+    @NotBlank
+    private String timestamp;
 }
