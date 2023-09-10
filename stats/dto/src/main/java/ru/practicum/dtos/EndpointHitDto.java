@@ -1,9 +1,11 @@
 package ru.practicum.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Getter
@@ -23,8 +25,8 @@ public class EndpointHitDto {
     @NotBlank
     @Size(max = 16)
     private String ip;
-    @NotBlank
-    private String timestamp;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime timestamp;
 
     @Override
     public boolean equals(Object o) {

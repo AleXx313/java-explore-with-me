@@ -11,6 +11,7 @@ import ru.practicum.dtos.EndpointHitDto;
 import ru.practicum.service.StatsServerService;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 import static org.mockito.Mockito.*;
@@ -29,12 +30,13 @@ class StatsServerControllerTest {
 
     @Test
     void save_whenDtoIsValid_thenStatusIsCreated() throws Exception {
+        LocalDateTime hitTime = LocalDateTime.of(2022, 3, 3, 16, 20, 0);
         EndpointHitDto dto = EndpointHitDto.builder()
                 .id(1L)
                 .app("some-app")
                 .uri("uri/1")
                 .ip("111.111.0.11")
-                .timestamp("2022-03-03 16:20:00")
+                .timestamp(hitTime)
                 .build();
         when(service.save(dto)).thenReturn(dto);
 
@@ -48,12 +50,13 @@ class StatsServerControllerTest {
 
     @Test
     void save_whenDtoIsNotValid_thenStatusIsBadRequest() throws Exception {
+        LocalDateTime hitTime = LocalDateTime.of(2022, 3, 3, 16, 20, 0);
         EndpointHitDto dto = EndpointHitDto.builder()
                 .id(1L)
                 .app("")
                 .uri("")
                 .ip("111.111.0.1122222222222222")
-                .timestamp("2022-03-03 16:20:00")
+                .timestamp(hitTime)
                 .build();
 
         mockMvc.perform(post("/hit")

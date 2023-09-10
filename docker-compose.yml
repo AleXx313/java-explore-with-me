@@ -9,7 +9,11 @@ services:
     depends_on:
       - stats-db
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-db:5432/ewmstat
+      - POSTGRES_USER=ewm
+      - POSTGRES_PASSWORD=ewm
+      - DB_NAME=ewmstat
+      - DB_HOST=stats-db
+      - DB_PORT=5432
 
   stats-db:
     image: postgres:13.7-alpine
