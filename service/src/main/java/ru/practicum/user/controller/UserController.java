@@ -25,15 +25,15 @@ public class UserController {
     }
     @GetMapping
     public ResponseEntity<List<UserDto>> find(
-            @RequestParam (required = false, value = "ids") List<Long> ids,
+            @RequestParam (required = false, value = "ids", defaultValue = "") List<Long> ids,
             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
             @Positive @RequestParam(name = "size", defaultValue = "10") Integer size){
         return new ResponseEntity<>(userService.find(ids, from, size), HttpStatus.OK);
     }
 
     @DeleteMapping(path = "/{id}")
-    public ResponseEntity<Object> delete(@PositiveOrZero @PathVariable (value = "id") Long id){
+    public ResponseEntity delete(@PositiveOrZero @PathVariable (value = "id") Long id){
         userService.delete(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.noContent().build();
     }
 }
