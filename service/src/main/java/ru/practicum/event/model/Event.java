@@ -34,8 +34,8 @@ public class Event {
     @Column(name = "created")
     private LocalDateTime created;
 
-    @Column(name = "start_date")
-    private LocalDateTime startDate;
+    @Column(name = "event_date")
+    private LocalDateTime eventDate;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "location_id", referencedColumnName = "id")

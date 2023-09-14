@@ -20,6 +20,7 @@ public class UserService {
 
     private final UserRepository userRepository;
 
+    //API
     @Transactional
     public UserDto save(UserDto dto) {
         User savedUser = userRepository.save(UserMapper.dtoToUser(dto));
@@ -41,5 +42,12 @@ public class UserService {
                 () -> new ModelNotFoundException(String.format("Пользователь с id %d отсутствует", id)));
         userRepository.deleteById(id);
         log.info("Пользователь с id - {} удален!", id);
+    }
+
+    //Внутреннее пользование
+    @Transactional(readOnly = true)
+    public User findById(Long id){
+        return userRepository.findById(id).orElseThrow(
+                () -> new ModelNotFoundException(String.format("Пользователь с id %d отсутствует", id)));
     }
 }

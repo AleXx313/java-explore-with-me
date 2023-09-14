@@ -3,6 +3,7 @@ package ru.practicum.user.mapper;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import ru.practicum.user.dtos.UserDto;
+import ru.practicum.user.dtos.UserShortDto;
 import ru.practicum.user.model.User;
 
 import java.util.List;
@@ -24,6 +25,13 @@ public class UserMapper {
                 .id(user.getId())
                 .name(user.getName())
                 .email(user.getEmail())
+                .build();
+    }
+
+    public static UserShortDto userToShortDto(User user){
+        return UserShortDto.builder()
+                .id(user.getId())
+                .name(user.getName())
                 .build();
     }
 

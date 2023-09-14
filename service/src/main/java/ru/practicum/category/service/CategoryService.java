@@ -20,6 +20,7 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    //API
     @Transactional
     public CategoryDto save(CategoryDto dto) {
         Category savedCategory = categoryRepository.save(CategoryMapper.dtoToCategory(dto));
@@ -54,5 +55,11 @@ public class CategoryService {
         Category category = categoryRepository.findById(id).orElseThrow(
                 () -> new ModelNotFoundException("Категория не найдена!"));
         return CategoryMapper.categoryToDto(category);
+    }
+
+    //Внутреннее пользование
+    @Transactional(readOnly = true)
+    public Category findById(Long id) {
+        return categoryRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("Категория не найдена!"));
     }
 }

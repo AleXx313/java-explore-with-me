@@ -5,6 +5,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -29,7 +30,7 @@ public class ErrorHandler {
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidExceptions(final MethodArgumentNotValidException e) {
         log.info("Получен статус 400 BadRequest {}", e.getMessage());
         ErrorResponse response = new ErrorResponse(
-                "Передан некорректный объект!",
+                "Передан некорректный объект! --MethodArgumentNotValid--",
                 e.getMessage(), HttpStatus.BAD_REQUEST.name(),
                 LocalDateTime.now());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -39,7 +40,18 @@ public class ErrorHandler {
     public ResponseEntity<ErrorResponse> handleConstraintViolationException(final ConstraintViolationException e) {
         log.info("Получен статус 400 BadRequest {}", e.getMessage());
         ErrorResponse response = new ErrorResponse(
-                "Передан некорректный объект!",
+                "Передан некорректный объект! --ConstraintViolation--",
+                e.getMessage(), HttpStatus.BAD_REQUEST.name(),
+                LocalDateTime.now());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({MissingServletRequestParameterException.class})
+    public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(
+            final MissingServletRequestParameterException e) {
+        log.info("Получен статус 400 BadRequest {}", e.getMessage());
+        ErrorResponse response = new ErrorResponse(
+                "Передан некорректный объект! --MissingServletRequestParameterException--",
                 e.getMessage(), HttpStatus.BAD_REQUEST.name(),
                 LocalDateTime.now());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -55,9 +67,18 @@ public class ErrorHandler {
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler({ApplicationRulesViolationException.class})
+    public ResponseEntity<ErrorResponse> handleApplicationRulesViolationException(final ApplicationRulesViolationException e) {
+        log.info("Получен статус 409 conflict {}", e.getMessage());
+        ErrorResponse response = new ErrorResponse(
+                "Передан некорректный объект!",
+                e.getMessage(), HttpStatus.CONFLICT.name(),
+                LocalDateTime.now());
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleNotSpecializedException(final Exception e) {
+    @ExceptionHandler({Throwable.class})
+    public ResponseEntity<ErrorResponse> handleNotSpecializedException(final Error e) {
         log.info("Получен статус 500 InternalServerError {}", e.getMessage());
         ErrorResponse response = new ErrorResponse(
                 "Неизвестная ошибка!",
