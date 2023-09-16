@@ -1,5 +1,6 @@
 package ru.practicum.client;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.*;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -7,83 +8,41 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import org.springframework.web.reactive.function.BodyInserters;
 import ru.practicum.dtos.EndpointHitDto;
+import ru.practicum.dtos.ViewStatDto;
 
 import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class StatsClient {
+    private final WebClient webClient;
 
-    private final RestTemplate rest;
+//    public StatsClient(String serverUrl) {
+//        webClient = WebClient.builder().baseUrl(serverUrl).build();
+//    }
 
-    public StatsClient() {
-        this.rest = new RestTemplateBuilder()
-                .uriTemplateHandler(new DefaultUriBuilderFactory("http://localhost:9090"))
-                .requestFactory(HttpComponentsClientHttpRequestFactory::new)
-                .build();
+    public List<ViewStatDto> getStats(String start, String end, List<String> uris, Boolean unique) {
+        String urisAsString = String.join(",", uris);
+
+        return webClient.get()
+                .uri("/stats?start={start}&end={end}&uris={uris}&unique={unique}", start, end, urisAsString, unique)
+                .retrieve()
+                .bodyToFlux(ViewStatDto.class)
+                .collectList()
+                .block();
     }
 
-    public ResponseEntity<Object> saveHit(EndpointHitDto dto) {
-        return makeAndSendRequest(HttpMethod.POST, "/hit", null, dto);
+    public void createEndpointHit(EndpointHitDto endpointHitDto) {
+        webClient.post()
+                .uri("/hit")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(BodyInserters.fromValue(endpointHitDto))
+                .exchange()
+                .block();
     }
-
-    //В клиент будут приходить закодированные параметры дат из основного сервиса.
-    //Раскодирование будет происходить уже в сервере.
-    public ResponseEntity<Object> getStats(String start, String end, List<String> uris, Boolean unique) {
-        String urisString = String.join(",", uris);
-
-        Map<String, Object> parameters = Map.of(
-                "start", start,
-                "end", end,
-                "uris", urisString,
-                "unique", unique
-        );
-
-        String path = String.format("/stats?start=%s&end=%s&uris=%s&unique=%s", start, end, urisString, unique);
-
-        return makeAndSendRequest(HttpMethod.GET, path, parameters, null);
-    }
-
-
-    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path,
-                                                          @Nullable Map<String, Object> parameters,
-                                                          @Nullable T body) {
-        HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders());
-
-        ResponseEntity<Object> statServerResponse;
-        try {
-            if (parameters != null) {
-                statServerResponse = rest.exchange(path, method, requestEntity, Object.class, parameters);
-            } else {
-                statServerResponse = rest.exchange(path, method, requestEntity, Object.class);
-            }
-        } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
-        }
-        return prepareGatewayResponse(statServerResponse);
-    }
-
-    //Собираем заголовки
-    private HttpHeaders defaultHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        return headers;
-    }
-
-    //Проверяем на ошибку
-    private static ResponseEntity<Object> prepareGatewayResponse(ResponseEntity<Object> response) {
-        if (response.getStatusCode().is2xxSuccessful()) {
-            return response;
-        }
-        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(response.getStatusCode());
-        if (response.hasBody()) {
-            return responseBuilder.body(response.getBody());
-        }
-        return responseBuilder.build();
-    }
-
-
 }
