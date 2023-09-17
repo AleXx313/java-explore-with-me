@@ -48,7 +48,7 @@ public class RequestService {
         if (event.getState() != EventState.PUBLISHED) {
             throw new ApplicationRulesViolationException("Нельзя подать заявку на участие в неопубликованном событии!");
         }
-        if (event.getParticipantLimit() <= getNumOfTakenSeats(eventId) && event.getParticipantLimit() != 0) {
+        if (event.getParticipantLimit() <= getNumOfTakenPlaces(eventId) && event.getParticipantLimit() != 0) {
             throw new ApplicationRulesViolationException("Мест нет!");
         }
         Request request = Request.builder()
@@ -112,7 +112,7 @@ public class RequestService {
         if (requestList.stream().anyMatch(request -> request.getStatus() != RequestStatus.PENDING)) {
             throw new ApplicationRulesViolationException("Статус одной или нескольких заявок не \"PENDING\"!");
         }
-        int numOfFreeSeats = event.getParticipantLimit() - getNumOfTakenSeats(eventId);
+        int numOfFreeSeats = event.getParticipantLimit() - getNumOfTakenPlaces(eventId);
         if (numOfFreeSeats == 0){
             throw new ApplicationRulesViolationException("Мест нет!");
         }
@@ -151,7 +151,9 @@ public class RequestService {
         return request.isPresent();
     }
 
-    public Integer getNumOfTakenSeats(Long eventId) {
+    public Integer getNumOfTakenPlaces(Long eventId) {
         return requestRepository.countAllByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
     }
+
+
 }

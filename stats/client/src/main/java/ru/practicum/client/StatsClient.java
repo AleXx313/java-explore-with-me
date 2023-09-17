@@ -37,7 +37,7 @@ public class StatsClient {
                 .block();
     }
 
-    public void createEndpointHit(EndpointHitDto endpointHitDto) {
+    public void saveHit(EndpointHitDto endpointHitDto) {
         webClient.post()
                 .uri("/hit")
                 .contentType(MediaType.APPLICATION_JSON)

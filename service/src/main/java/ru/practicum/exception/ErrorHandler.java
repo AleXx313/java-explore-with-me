@@ -59,12 +59,23 @@ public class ErrorHandler {
 
     @ExceptionHandler({ModelNotFoundException.class})
     public ResponseEntity<ErrorResponse> handleModelNotFoundExceptions(final ModelNotFoundException e) {
-        log.info("Получен статус 400 BadRequest {}", e.getMessage());
+        log.info("Получен статус 404 NotFound {}", e.getMessage());
         ErrorResponse response = new ErrorResponse(
                 "Передан некорректный объект!",
                 e.getMessage(), HttpStatus.NOT_FOUND.name(),
                 LocalDateTime.now());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler({CustomBadRequestException.class})
+    public ResponseEntity<ErrorResponse> handleNotSpecializedBadRequestException(
+            final CustomBadRequestException e) {
+        log.info("Получен статус 400 BadRequest {}", e.getMessage());
+        ErrorResponse response = new ErrorResponse(
+                "Передан некорректный объект! --NotSpecializedBadRequestException--",
+                e.getMessage(), HttpStatus.BAD_REQUEST.name(),
+                LocalDateTime.now());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({ApplicationRulesViolationException.class})

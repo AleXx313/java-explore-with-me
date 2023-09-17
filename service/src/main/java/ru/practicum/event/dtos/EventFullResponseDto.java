@@ -1,15 +1,11 @@
 package ru.practicum.event.dtos;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.category.dtos.CategoryDto;
 import ru.practicum.event.dtos.location.LocationDto;
 import ru.practicum.event.model.EventState;
 import ru.practicum.user.dtos.UserShortDto;
-import ru.practicum.user.model.User;
 import ru.practicum.util.constant.Constants;
 
 import java.time.LocalDateTime;
@@ -18,7 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BaseEventResponseDto {
+public class EventFullResponseDto {
 
     private Long id;
 
@@ -41,7 +37,8 @@ public class BaseEventResponseDto {
     private Boolean requestModeration;
 
     private Integer participantLimit;
+    private long views;
+    private Integer confirmedRequests;
 
     private EventState state;
-
 }
