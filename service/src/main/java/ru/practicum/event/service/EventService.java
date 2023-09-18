@@ -387,6 +387,16 @@ public class EventService {
         if (dto.getRequestModeration() != null) event.setRequestModeration(dto.getRequestModeration());
     }
 
+    public EventPublicResponseDto getPublicDtoById(Long eventId) {
+        Event event = findById(eventId);
+        EventPublicResponseDto result = EventMapper.eventToPublicDto(event);
+        result.setViews(getViews(event));
+        result.setConfirmedRequests(getNumOfTakenPlaces(eventId));
+        return result;
+    }
+
+
+
     public Integer getNumOfTakenPlaces(Long eventId) {
         return requestRepository.countAllByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
     }
@@ -429,6 +439,6 @@ public class EventService {
                 .format(SimpleDateFormatter.FORMATTER), StandardCharsets.UTF_8);
         List<ViewStatDto> stats = statsClient.getStats(
                 startDate, endDate, List.of("/events/" + event.getId()), true);
-        return stats.get(0).getHits();
+        return !stats.isEmpty() ? stats.get(0).getHits() : 0L;
     }
 }
