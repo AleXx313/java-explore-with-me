@@ -32,7 +32,7 @@ public class StatsServerService {
         LocalDateTime startDate = LocalDateTime.parse(UriEncoder.decode(start), formatter);
         LocalDateTime endDate = LocalDateTime.parse(UriEncoder.decode(end), formatter);
 
-        if(startDate.isAfter(endDate)){
+        if (startDate.isAfter(endDate)) {
             throw new CustomBadRequestException("Начало диапазона после его конца!");
         }
 
