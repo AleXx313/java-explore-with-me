@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.util.UriEncoder;
 import ru.practicum.dtos.EndpointHitDto;
 import ru.practicum.dtos.ViewStatDto;
+import ru.practicum.exception.CustomBadRequestException;
 import ru.practicum.mapper.EndpointHitMapper;
 import ru.practicum.model.EndpointHit;
 import ru.practicum.repository.StatsServerRepository;
@@ -30,6 +31,11 @@ public class StatsServerService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDateTime startDate = LocalDateTime.parse(UriEncoder.decode(start), formatter);
         LocalDateTime endDate = LocalDateTime.parse(UriEncoder.decode(end), formatter);
+
+        if(startDate.isAfter(endDate)){
+            throw new CustomBadRequestException("Начало диапазона после его конца!");
+        }
+
         log.info("Запрошена статистика за период с {} по {}!", start, end);
         if (unique) {
             if (uris.isEmpty()) {
