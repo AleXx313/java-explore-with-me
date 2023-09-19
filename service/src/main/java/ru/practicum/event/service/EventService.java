@@ -149,26 +149,26 @@ public class EventService {
                 //Есть поиск по категориям
                 if (paid != null) {
                     //Есть поиск по наличию оплаты
-                    filteredList = eventRepository.
-                            findAllByAnnotationContainsIgnoreCaseOrDescriptionContainsIgnoreCaseAndCategoryIdIsInAndPaidAndEventDateIsBetweenAndState(
+                    filteredList = eventRepository
+                            .findAllByAnnotationContainsIgnoreCaseOrDescriptionContainsIgnoreCaseAndCategoryIdIsInAndPaidAndEventDateIsBetweenAndState(
                                     text, text, categories, paid, rangeStart, rangeEnd, EventState.PUBLISHED);
                 } else {
                     //Нет поиска по наличию оплаты
-                    filteredList = eventRepository.
-                            findAllByAnnotationContainsIgnoreCaseOrDescriptionContainsIgnoreCaseAndCategoryIdIsInAndEventDateIsBetweenAndState(
+                    filteredList = eventRepository
+                            .findAllByAnnotationContainsIgnoreCaseOrDescriptionContainsIgnoreCaseAndCategoryIdIsInAndEventDateIsBetweenAndState(
                                     text, text, categories, rangeStart, rangeEnd, EventState.PUBLISHED);
                 }
             } else {
                 //Нет поиска по категории
                 if (paid != null) {
                     //Есть поиск по наличию оплаты
-                    filteredList = eventRepository.
-                            findAllByAnnotationContainsIgnoreCaseOrDescriptionContainsIgnoreCaseAndPaidAndEventDateIsBetweenAndState(
+                    filteredList = eventRepository
+                            .findAllByAnnotationContainsIgnoreCaseOrDescriptionContainsIgnoreCaseAndPaidAndEventDateIsBetweenAndState(
                                     text, text, paid, rangeStart, rangeEnd, EventState.PUBLISHED);
                 } else {
                     //Нет поиска по наличию оплаты
-                    filteredList = eventRepository.
-                            findAllByAnnotationContainsIgnoreCaseOrDescriptionContainsIgnoreCaseAndEventDateIsBetweenAndState(
+                    filteredList = eventRepository
+                            .findAllByAnnotationContainsIgnoreCaseOrDescriptionContainsIgnoreCaseAndEventDateIsBetweenAndState(
                                     text, text, rangeStart, rangeEnd, EventState.PUBLISHED);
                 }
             }
@@ -178,13 +178,13 @@ public class EventService {
                 //Есть поиск по категориям
                 if (paid != null) {
                     //Есть поиск по наличию оплаты
-                    filteredList = eventRepository.
-                            findAllByCategoryIdIsInAndPaidAndEventDateIsBetweenAndState(
+                    filteredList = eventRepository
+                            .findAllByCategoryIdIsInAndPaidAndEventDateIsBetweenAndState(
                                     categories, paid, rangeStart, rangeEnd, EventState.PUBLISHED);
                 } else {
                     //Нет поиска по наличию оплаты
-                    filteredList = eventRepository.
-                            findAllByCategoryIdIsInAndEventDateIsBetweenAndState(
+                    filteredList = eventRepository
+                            .findAllByCategoryIdIsInAndEventDateIsBetweenAndState(
                                     categories, rangeStart, rangeEnd, EventState.PUBLISHED);
                 }
             } else {
@@ -368,7 +368,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public EventFullResponseDto getByIdByUser(Long userId, Long eventId) {
-        User user = userService.findById(userId);
+        userService.findById(userId);
         Event event = findById(eventId);
         if (!event.getInitiator().getId().equals(userId)) {
             throw new ModelNotFoundException("Полную информацию о событии может просматривать только его создатель!");
