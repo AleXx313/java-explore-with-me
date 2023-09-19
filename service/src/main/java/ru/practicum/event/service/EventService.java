@@ -20,7 +20,6 @@ import ru.practicum.exception.ModelNotFoundException;
 import ru.practicum.exception.CustomBadRequestException;
 import ru.practicum.request.model.RequestStatus;
 import ru.practicum.request.repository.RequestRepository;
-import ru.practicum.user.model.User;
 import ru.practicum.user.service.UserService;
 import ru.practicum.util.constant.Constants;
 import ru.practicum.util.enums.SortType;
