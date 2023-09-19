@@ -28,7 +28,7 @@ services:
   ewm-service:
     build: service
     image: service
-    container_name: ewm-servive-container
+    container_name: ewm-serviсe-container
     ports:
       - "8080:8080"
     depends_on:

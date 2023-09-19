@@ -1,6 +1,7 @@
 package ru.practicum.event.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EventService {
     //Репозиторий сущности
     private final EventRepository eventRepository;
@@ -64,7 +66,7 @@ public class EventService {
             event.setParticipantLimit(0);
         }
         Event savedEvent = eventRepository.save(event);
-
+        log.info("Событие с id - {} сохранено!", event.getId());
         return EventMapper.eventToDto(savedEvent);
     }
 
@@ -87,6 +89,7 @@ public class EventService {
             if (dto.getStateAction() == UpdateState.CANCEL_REVIEW) event.setState(EventState.CANCELED);
         }
         updateEvent(dto, event);
+        log.info("Событие с id - {} обновлено пользователем!", event.getId());
         return EventMapper.eventToDto(eventRepository.save(event));
     }
 
@@ -114,6 +117,7 @@ public class EventService {
             if (dto.getStateAction() == UpdateState.REJECT_EVENT) event.setState(EventState.CANCELED);
         }
         updateEvent(dto, event);
+        log.info("Событие с id - {} обновлено администратором!", event.getId());
         return EventMapper.eventToDto(eventRepository.save(event));
     }
 
@@ -230,6 +234,7 @@ public class EventService {
         //Делаем пагинацию
         int upperBound = (Math.min((from + size), result.size()));
         result = result.subList(from, upperBound);
+        log.info("Получен публичный запрос списка событий!");
         return result;
     }
 
@@ -240,9 +245,11 @@ public class EventService {
         EventFullResponseDto result = EventMapper.eventToFullDto(event);
         result.setViews(getViews(event));
         result.setConfirmedRequests(getNumOfTakenPlaces(eventId));
+        log.info("Получен публичный запрос сведений о событии по id!");
         return result;
     }
 
+    @Transactional(readOnly = true)
     public List<EventFullResponseDto> getAllByAdmin(List<Long> users,
                                                     List<String> states,
                                                     List<Long> categories,
@@ -335,10 +342,11 @@ public class EventService {
         //
         int upperBound = (Math.min((from + size), result.size()));
         result = result.subList(from, upperBound);
+        log.info("Получен запрос списка событий от администратора!");
         return result;
     }
 
-
+    @Transactional(readOnly = true)
     public List<EventPublicResponseDto> getAllByUser(Long userId, Integer from, Integer size) {
         userService.findById(userId);
         PageRequest pageRequest = PageRequest.of(from / size, size);
@@ -354,9 +362,11 @@ public class EventService {
             if (viewsById.get(e.getId()) != null) e.setViews(viewsById.get(e.getId()));
         });
         result.forEach(e -> e.setConfirmedRequests(getNumOfTakenPlaces(e.getId())));
+        log.info("Получен запрос списка событий пользователя с id - {}!", userId);
         return result;
     }
 
+    @Transactional(readOnly = true)
     public EventFullResponseDto getByIdByUser(Long userId, Long eventId) {
         User user = userService.findById(userId);
         Event event = findById(eventId);
@@ -366,9 +376,9 @@ public class EventService {
         EventFullResponseDto result = EventMapper.eventToFullDto(event);
         result.setViews(getViews(event));
         result.setConfirmedRequests(getNumOfTakenPlaces(eventId));
+        log.info("Получен запрос события с id - {} пользователя с id - {}!", eventId, userId);
         return result;
     }
-
 
     //Внутреннее пользование
     public Event findById(Long id) {
@@ -395,24 +405,22 @@ public class EventService {
         return result;
     }
 
-
-
     public Integer getNumOfTakenPlaces(Long eventId) {
         return requestRepository.countAllByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
     }
 
     private Map<Long, Long> getViews(List<Event> filteredList) {
         Map<Long, Long> viewsById = new HashMap<>();
-        Optional <LocalDateTime> minPublishedOnOpt = filteredList.stream()
+        Optional<LocalDateTime> minPublishedOnOpt = filteredList.stream()
                 .map(Event::getPublishedOn)
                 .filter(Objects::nonNull)
                 .min(LocalDateTime::compareTo);
 
         LocalDateTime minPublishedOn;
-        if(minPublishedOnOpt.isPresent()){
+        if (minPublishedOnOpt.isPresent()) {
             minPublishedOn = minPublishedOnOpt.get();
         } else {
-             return viewsById;
+            return viewsById;
         }
         String startDate = URLEncoder.encode(minPublishedOn
                 .format(SimpleDateFormatter.FORMATTER), StandardCharsets.UTF_8);
@@ -430,7 +438,7 @@ public class EventService {
     }
 
     private Long getViews(Event event) {
-        if(event.getPublishedOn() == null){
+        if (event.getPublishedOn() == null) {
             return 0L;
         }
         String startDate = URLEncoder.encode(event.getPublishedOn()

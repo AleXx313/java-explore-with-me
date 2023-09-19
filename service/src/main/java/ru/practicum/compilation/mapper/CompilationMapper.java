@@ -9,18 +9,19 @@ import ru.practicum.compilation.model.Compilation;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CompilationMapper {
 
-    public static Compilation dtoToCompilation(NewCompilationRequest dto){
+    public static Compilation dtoToCompilation(NewCompilationRequest dto) {
         return Compilation.builder()
                 .title(dto.getTitle())
                 .pinned(dto.isPinned())
                 .build();
     }
-   public static CompilationResponseDto compilationToDto(Compilation compilation){
+
+    public static CompilationResponseDto compilationToDto(Compilation compilation) {
         return CompilationResponseDto.builder()
                 .id(compilation.getId())
                 .title(compilation.getTitle())
                 .pinned(compilation.isPinned())
                 .build();
-   }
+    }
 
 }

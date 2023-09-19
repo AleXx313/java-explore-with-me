@@ -8,14 +8,14 @@ import ru.practicum.event.model.location.Location;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class LocationMapper {
 
-    public static LocationDto locationToDto(Location location){
+    public static LocationDto locationToDto(Location location) {
         return LocationDto.builder()
                 .lat(location.getLat())
                 .lon(location.getLon())
                 .build();
     }
 
-    public static Location dtoToLocation(LocationDto dto){
+    public static Location dtoToLocation(LocationDto dto) {
         return Location.builder()
                 .lat(dto.getLat())
                 .lon(dto.getLon())

@@ -47,18 +47,18 @@ public class CategoryService {
     @Transactional(readOnly = true)
     public List<CategoryDto> findAll(Integer from, Integer size) {
         PageRequest request = PageRequest.of(from / size, size);
+        log.info("Получен список категорий");
         return CategoryMapper.listToDto(categoryRepository.findAll(request).toList());
     }
 
     @Transactional(readOnly = true)
     public CategoryDto getById(Long id) {
-        Category category = categoryRepository.findById(id).orElseThrow(
-                () -> new ModelNotFoundException("Категория не найдена!"));
+        Category category = findById(id);
+        log.info("Получена категория с id - {}", id);
         return CategoryMapper.categoryToDto(category);
     }
 
     //Внутреннее пользование
-    @Transactional(readOnly = true)
     public Category findById(Long id) {
         return categoryRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("Категория не найдена!"));
     }

@@ -1,6 +1,7 @@
 package ru.practicum.compilation.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CompilationService {
 
     private final CompilationRepository compilationRepository;
@@ -30,7 +32,7 @@ public class CompilationService {
     @Transactional
     public CompilationResponseDto save(NewCompilationRequest dto) {
         Compilation compilation = CompilationMapper.dtoToCompilation(dto);
-        if (dto.getEvents() != null){
+        if (dto.getEvents() != null) {
             Set<Event> events = dto.getEvents().stream()
                     .map(eventService::findById)
                     .collect(Collectors.toSet());
@@ -38,7 +40,7 @@ public class CompilationService {
         } else {
             compilation.setEvents(new HashSet<>());
         }
-
+        log.info("Сохранена подборка событий - {}", compilation.getTitle());
         return getCompilationResponseDto(compilation);
     }
 
@@ -46,6 +48,7 @@ public class CompilationService {
     public void delete(Long compId) {
         findById(compId);
         compilationRepository.deleteById(compId);
+        log.info("Удалена подборка событий с id - {}", compId);
     }
 
     @Transactional
@@ -61,6 +64,7 @@ public class CompilationService {
 
             compilation.setEvents(eventsToAdd);
         }
+        log.info("Обновлена подборка событий - {}", compilation.getTitle());
         return getCompilationResponseDto(compilation);
     }
 
@@ -76,14 +80,18 @@ public class CompilationService {
         List<CompilationResponseDto> result = compilations.stream()
                 .map(this::getCompilationResponseDto)
                 .collect(Collectors.toList());
+        log.info("Получен список подборок событий");
         return result;
     }
+
     @Transactional(readOnly = true)
     public CompilationResponseDto findOne(Long compId) {
         Compilation compilation = findById(compId);
+        log.info("Получена подборка событий - {}!", compilation.getTitle());
         return getCompilationResponseDto(compilation);
     }
 
+    //Внутреннее пользование
     private CompilationResponseDto getCompilationResponseDto(Compilation compilation) {
         Compilation updatedCompilation = compilationRepository.save(compilation);
         CompilationResponseDto result = CompilationMapper.compilationToDto(updatedCompilation);

@@ -21,18 +21,18 @@ public class CategoryController {
 
     //АДМИН ЧАСТЬ
     @PostMapping(path = "/" + ADMIN + "/categories")
-    public ResponseEntity<CategoryDto> save(@RequestBody @Valid CategoryDto dto){
+    public ResponseEntity<CategoryDto> save(@RequestBody @Valid CategoryDto dto) {
         return new ResponseEntity<>(categoryService.save(dto), HttpStatus.CREATED);
     }
 
     @PatchMapping(path = "/" + ADMIN + "/categories/{id}")
     public ResponseEntity<CategoryDto> update(@PathVariable(value = "id") Long id,
-                                              @RequestBody @Valid CategoryDto dto){
+                                              @RequestBody @Valid CategoryDto dto) {
         return new ResponseEntity<>(categoryService.update(id, dto), HttpStatus.OK);
     }
 
     @DeleteMapping(path = "/" + ADMIN + "/categories/{id}")
-    public ResponseEntity delete(@PathVariable(value = "id") Long id){
+    public ResponseEntity delete(@PathVariable(value = "id") Long id) {
         categoryService.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -41,13 +41,12 @@ public class CategoryController {
     @GetMapping(path = "/categories")
     public ResponseEntity<List<CategoryDto>> findAll(
             @PositiveOrZero @RequestParam(name = "from", defaultValue = "0") Integer from,
-            @Positive @RequestParam(name = "size", defaultValue = "10") Integer size){
+            @Positive @RequestParam(name = "size", defaultValue = "10") Integer size) {
         return new ResponseEntity<>(categoryService.findAll(from, size), HttpStatus.OK);
     }
 
     @GetMapping(path = "/categories/{id}")
-    public ResponseEntity<CategoryDto> findById(@PathVariable (value = "id") Long id){
+    public ResponseEntity<CategoryDto> findById(@PathVariable(value = "id") Long id) {
         return new ResponseEntity<>(categoryService.getById(id), HttpStatus.OK);
     }
-
 }

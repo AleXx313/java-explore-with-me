@@ -27,15 +27,17 @@ public class UserService {
         log.info("Сохранен пользователь по имени - {} с id - {}!", savedUser.getName(), savedUser.getId());
         return UserMapper.userToDto(savedUser);
     }
+
     @Transactional(readOnly = true)
     public List<UserDto> find(List<Long> ids, Integer from, Integer size) {
         PageRequest request = PageRequest.of(from / size, size);
-        if (ids.isEmpty()){
+        if (ids.isEmpty()) {
             return UserMapper.listToDtoList(userRepository.findAll(request).toList());
         } else {
             return UserMapper.listToDtoList(userRepository.findAllByIdIsIn(request, ids));
         }
     }
+
     @Transactional
     public void delete(Long id) {
         userRepository.findById(id).orElseThrow(
@@ -46,7 +48,7 @@ public class UserService {
 
     //Внутреннее пользование
     @Transactional(readOnly = true)
-    public User findById(Long id){
+    public User findById(Long id) {
         return userRepository.findById(id).orElseThrow(
                 () -> new ModelNotFoundException(String.format("Пользователь с id %d отсутствует", id)));
     }

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.client.StatsClient;
 import ru.practicum.dtos.EndpointHitDto;
 import ru.practicum.event.dtos.*;
-import ru.practicum.event.model.EventState;
 import ru.practicum.event.service.EventService;
 import ru.practicum.util.constant.Constants;
 import ru.practicum.util.enums.SortType;
@@ -97,6 +96,7 @@ public class EventController {
                 .build());
         return new ResponseEntity<>(eventService.getByIdPublic(eventId), HttpStatus.OK);
     }
+
     //Админ
     //Поиск с фильтрами. Пагинация.
     /*
@@ -107,13 +107,13 @@ public class EventController {
      */
     @GetMapping(path = "/admin/events")
     public ResponseEntity<List<EventFullResponseDto>> getAllByAdmin(
-            @RequestParam (required = false, defaultValue = "") List<Long> users,
-            @RequestParam (required = false, defaultValue = "") List<String> states,
-            @RequestParam (required = false, defaultValue = "") List<Long> categories,
+            @RequestParam(required = false, defaultValue = "") List<Long> users,
+            @RequestParam(required = false, defaultValue = "") List<String> states,
+            @RequestParam(required = false, defaultValue = "") List<Long> categories,
             @RequestParam(required = false) @DateTimeFormat(pattern = Constants.DATE_PATTERN) LocalDateTime rangeStart,
             @RequestParam(required = false) @DateTimeFormat(pattern = Constants.DATE_PATTERN) LocalDateTime rangeEnd,
             @RequestParam(required = false, defaultValue = "0") Integer from,
-            @RequestParam(required = false, defaultValue = "10") Integer size){
+            @RequestParam(required = false, defaultValue = "10") Integer size) {
 
         return new ResponseEntity<>(
                 eventService.getAllByAdmin(users, states, categories, rangeStart, rangeEnd, from, size),
@@ -124,21 +124,16 @@ public class EventController {
     //Все события пользователя с запросами и просмотрами. Пагинация!
     @GetMapping(path = "/users/{userId}/events")
     public ResponseEntity<List<EventPublicResponseDto>> getAllByUser(
-            @PathVariable (value = "userId") Long userId,
+            @PathVariable(value = "userId") Long userId,
             @RequestParam(required = false, defaultValue = "0") Integer from,
-            @RequestParam(required = false, defaultValue = "10") Integer size){
+            @RequestParam(required = false, defaultValue = "10") Integer size) {
         return new ResponseEntity<>(eventService.getAllByUser(userId, from, size), HttpStatus.OK);
     }
 
     //Полный обзор события по id. Запросы и просмотры также внутри.
     @GetMapping(path = "/users/{userId}/events/{eventId}")
     public ResponseEntity<EventFullResponseDto> getByIdByUser(@PathVariable(value = "userId") Long userId,
-                                                              @PathVariable(value = "eventId") Long eventId){
+                                                              @PathVariable(value = "eventId") Long eventId) {
         return new ResponseEntity<>(eventService.getByIdByUser(userId, eventId), HttpStatus.OK);
     }
-
-
-
-
-
 }

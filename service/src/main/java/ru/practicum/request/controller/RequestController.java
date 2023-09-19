@@ -46,12 +46,13 @@ public class RequestController {
                                                                   @PathVariable(value = "eventId") Long eventId) {
         return new ResponseEntity<>(requestService.getByOwner(userId, eventId), HttpStatus.OK);
     }
+
     //Подтверждение и отказ в запросе
     @PatchMapping(path = OWNER_PATH)
     public ResponseEntity<RequestersStatusUpdateResponseDto> updateRequest(
             @PathVariable(value = "userId") Long userId,
             @PathVariable(value = "eventId") Long eventId,
-            @Valid @RequestBody RequestersStatusUpdateDto dto){
-        return new ResponseEntity<>(requestService.updateRequest(userId, eventId,dto), HttpStatus.OK);
+            @Valid @RequestBody RequestersStatusUpdateDto dto) {
+        return new ResponseEntity<>(requestService.updateRequest(userId, eventId, dto), HttpStatus.OK);
     }
 }

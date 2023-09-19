@@ -1,7 +1,9 @@
 package ru.practicum.request.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.event.model.Event;
 import ru.practicum.event.model.EventState;
 import ru.practicum.event.service.EventService;
@@ -24,6 +26,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RequestService {
 
     private final RequestRepository requestRepository;
@@ -36,6 +39,7 @@ public class RequestService {
     //Нельзя участвовать в неопубликованном событии 409 ++
     //Если достигнут лимит участников то нужно вернуть 409 ++
     //Если нет премодерации, то автоматически запрос становится Confirmed
+    @Transactional
     public ParticipantRequestDto save(Long userId, Long eventId) {
         if (isRepeat(userId, eventId)) {
             throw new ApplicationRulesViolationException("Нельзя подать повторную заявку на участие в событии!");
@@ -61,9 +65,11 @@ public class RequestService {
         } else {
             request.setStatus(RequestStatus.PENDING);
         }
+        log.info("Сохранен запрос на участие в событии с id - {} от пользователя с id - {}!", eventId, userId);
         return RequestMapper.requestToDto(requestRepository.save(request));
     }
 
+    @Transactional
     public ParticipantRequestDto cancel(Long userId, Long requestId) {
         Request request = findRequest(requestId);
         if (!request.getRequester().getId().equals(userId)) {
@@ -71,13 +77,17 @@ public class RequestService {
         }
         request.setStatus(RequestStatus.CANCELED);
         Request updatedRequest = requestRepository.save(request);
+        log.info("Запрос на участие с  id - {} отменен пользователем!", requestId);
         return RequestMapper.requestToDto(updatedRequest);
     }
 
+    @Transactional(readOnly = true)
     public List<ParticipantRequestDto> getByRequester(Long userId) {
+        log.info("Получен запрос пользователя на получение списка своиъ запросов на участие в событиях!");
         return RequestMapper.listToDto(requestRepository.findAllByRequesterId(userId));
     }
 
+    @Transactional(readOnly = true)
     public List<ParticipantRequestDto> getByOwner(Long userId, Long eventId) {
         userService.findById(userId);
         Event event = eventService.findById(eventId);
@@ -85,6 +95,8 @@ public class RequestService {
             throw new ApplicationRulesViolationException("Только инициатор события может просматривать подробную " +
                     "информацию о запросах на участие!");
         }
+        log.info("Получен запрос иницатора события с id - {} на получения списка запросов на участие в событии!",
+                eventId);
         return RequestMapper.listToDto(requestRepository.findAllByEventId(eventId));
     }
 
@@ -92,6 +104,7 @@ public class RequestService {
     //Если лимит 0, то подтверждение не требуется?++
     //Статус можно менять только для пендингов ++
     //Если в процессе подтверждения, лимит исчерпается, то все не вошедшие в лимит отклоняются ++
+    @Transactional
     public RequestersStatusUpdateResponseDto updateRequest(Long userId, Long eventId, RequestersStatusUpdateDto dto) {
 
         userService.findById(userId);
@@ -102,7 +115,7 @@ public class RequestService {
         }
         List<Request> requestList = requestRepository.findAllByIdIn(dto.getRequestIds());
         RequestersStatusUpdateResponseDto dtoOut = new RequestersStatusUpdateResponseDto();
-        if (!event.getRequestModeration() || event.getParticipantLimit() == 0){
+        if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
             dtoOut.getConfirmedRequests().addAll(RequestMapper.listToDto(requestList));
             return dtoOut;
         }
@@ -113,7 +126,7 @@ public class RequestService {
             throw new ApplicationRulesViolationException("Статус одной или нескольких заявок не \"PENDING\"!");
         }
         int numOfFreeSeats = event.getParticipantLimit() - getNumOfTakenPlaces(eventId);
-        if (numOfFreeSeats == 0){
+        if (numOfFreeSeats == 0) {
             throw new ApplicationRulesViolationException("Мест нет!");
         }
 
@@ -127,8 +140,8 @@ public class RequestService {
         requestRepository.saveAll(requestList);
         List<Request> confirmedRequests = new ArrayList<>();
         List<Request> rejectedRequests = new ArrayList<>();
-        for (Request request : requestList){
-            if(request.getStatus() == RequestStatus.CONFIRMED){
+        for (Request request : requestList) {
+            if (request.getStatus() == RequestStatus.CONFIRMED) {
 
                 confirmedRequests.add(request);
             } else {
@@ -137,6 +150,7 @@ public class RequestService {
         }
         dtoOut.setConfirmedRequests(RequestMapper.listToDto(confirmedRequests));
         dtoOut.setRejectedRequests(RequestMapper.listToDto(rejectedRequests));
+        log.info("Инициатором события обновлен статус запросов!");
         return dtoOut;
     }
 

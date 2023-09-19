@@ -1,6 +1,5 @@
 package ru.practicum.compilation.model;
 
-
 import lombok.*;
 import ru.practicum.event.model.Event;
 
@@ -26,8 +25,8 @@ public class Compilation {
     @ManyToMany
 
     @JoinTable(name = "compilations_events",
-            joinColumns = {@JoinColumn(name= "compilation_id")},
-    inverseJoinColumns = {@JoinColumn (name = "event_id")})
+            joinColumns = {@JoinColumn(name = "compilation_id")},
+            inverseJoinColumns = {@JoinColumn(name = "event_id")})
     private Set<Event> events;
     @Column(name = "pinned")
     private boolean pinned;

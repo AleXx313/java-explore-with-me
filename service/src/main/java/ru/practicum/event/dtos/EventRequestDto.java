@@ -5,10 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 import ru.practicum.event.dtos.location.LocationDto;
 import ru.practicum.util.constant.Constants;
-import ru.practicum.util.validation.StartAfterTwoHours;
 
 import javax.validation.constraints.*;
 import java.time.LocalDateTime;

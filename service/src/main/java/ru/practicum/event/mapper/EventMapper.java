@@ -14,7 +14,7 @@ import ru.practicum.user.mapper.UserMapper;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EventMapper {
 
-    public static Event newDtoToEvent(EventRequestDto dto){
+    public static Event newDtoToEvent(EventRequestDto dto) {
         return Event.builder()
                 .title(dto.getTitle())
                 .annotation(dto.getAnnotation())
@@ -26,7 +26,8 @@ public class EventMapper {
                 .participantLimit(dto.getParticipantLimit())
                 .build();
     }
-    public static EventBaseResponseDto eventToDto(Event event){
+
+    public static EventBaseResponseDto eventToDto(Event event) {
         return EventBaseResponseDto.builder()
                 .id(event.getId())
                 .title(event.getTitle())
@@ -45,7 +46,7 @@ public class EventMapper {
                 .build();
     }
 
-    public static EventFullResponseDto eventToFullDto(Event event){
+    public static EventFullResponseDto eventToFullDto(Event event) {
         return EventFullResponseDto.builder()
                 .id(event.getId())
                 .title(event.getTitle())
@@ -64,7 +65,7 @@ public class EventMapper {
                 .build();
     }
 
-    public static EventPublicResponseDto eventToPublicDto(Event event){
+    public static EventPublicResponseDto eventToPublicDto(Event event) {
         return EventPublicResponseDto.builder()
                 .eventDate(event.getEventDate())
                 .annotation(event.getAnnotation())
