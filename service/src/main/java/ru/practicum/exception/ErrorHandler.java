@@ -16,31 +16,11 @@ import java.time.LocalDateTime;
 @Slf4j
 public class ErrorHandler {
 
-    @ExceptionHandler({DataIntegrityViolationException.class})
-    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(final DataIntegrityViolationException e) {
-        log.info("Получен статус 409 Conflict {}", e.getMessage());
-        ErrorResponse response = new ErrorResponse(
-                "Нарушены ограничения базы данных!",
-                e.getMessage(), HttpStatus.CONFLICT.name(),
-                LocalDateTime.now());
-        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-    }
-
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidExceptions(final MethodArgumentNotValidException e) {
         log.info("Получен статус 400 BadRequest {}", e.getMessage());
         ErrorResponse response = new ErrorResponse(
                 "Передан некорректный объект! --MethodArgumentNotValid--",
-                e.getMessage(), HttpStatus.BAD_REQUEST.name(),
-                LocalDateTime.now());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler({ConstraintViolationException.class})
-    public ResponseEntity<ErrorResponse> handleConstraintViolationException(final ConstraintViolationException e) {
-        log.info("Получен статус 400 BadRequest {}", e.getMessage());
-        ErrorResponse response = new ErrorResponse(
-                "Передан некорректный объект! --ConstraintViolation--",
                 e.getMessage(), HttpStatus.BAD_REQUEST.name(),
                 LocalDateTime.now());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
@@ -61,31 +41,40 @@ public class ErrorHandler {
     public ResponseEntity<ErrorResponse> handleModelNotFoundExceptions(final ModelNotFoundException e) {
         log.info("Получен статус 404 NotFound {}", e.getMessage());
         ErrorResponse response = new ErrorResponse(
-                "Передан некорректный объект!",
+                "Сущность с заданным id не найдена!",
                 e.getMessage(), HttpStatus.NOT_FOUND.name(),
                 LocalDateTime.now());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler({CustomBadRequestException.class})
-    public ResponseEntity<ErrorResponse> handleNotSpecializedBadRequestException(
-            final CustomBadRequestException e) {
-        log.info("Получен статус 400 BadRequest {}", e.getMessage());
-        ErrorResponse response = new ErrorResponse(
-                "Передан некорректный объект! --NotSpecializedBadRequestException--",
-                e.getMessage(), HttpStatus.BAD_REQUEST.name(),
-                LocalDateTime.now());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({ApplicationRulesViolationException.class})
     public ResponseEntity<ErrorResponse> handleApplicationRulesViolationException(final ApplicationRulesViolationException e) {
         log.info("Получен статус 409 conflict {}", e.getMessage());
         ErrorResponse response = new ErrorResponse(
-                "Передан некорректный объект!",
+                "Запрос не соответствует требованиям приложения!",
                 e.getMessage(), HttpStatus.CONFLICT.name(),
                 LocalDateTime.now());
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler({DataIntegrityViolationException.class})
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(final DataIntegrityViolationException e) {
+        log.info("Получен статус 409 Conflict {}", e.getMessage());
+        ErrorResponse response = new ErrorResponse(
+                "Нарушены ограничения базы данных!",
+                e.getMessage(), HttpStatus.CONFLICT.name(),
+                LocalDateTime.now());
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler({ConstraintViolationException.class, CustomBadRequestException.class})
+    public ResponseEntity<ErrorResponse> handleBadRequestException(final RuntimeException e) {
+        log.info("Получен статус 400 BadRequest {}", e.getMessage());
+        ErrorResponse response = new ErrorResponse(
+                "Передан некорректный объект! --ConstraintViolation--",
+                e.getMessage(), HttpStatus.BAD_REQUEST.name(),
+                LocalDateTime.now());
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({Throwable.class})

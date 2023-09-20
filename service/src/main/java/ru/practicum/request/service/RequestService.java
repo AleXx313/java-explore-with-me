@@ -34,11 +34,6 @@ public class RequestService {
     private final EventService eventService;
     private final UserService userService;
 
-    //Проверка на повторный запрос ++
-    //Нельзя участвовать в своем событии 409 ++
-    //Нельзя участвовать в неопубликованном событии 409 ++
-    //Если достигнут лимит участников то нужно вернуть 409 ++
-    //Если нет премодерации, то автоматически запрос становится Confirmed
     @Transactional
     public ParticipantRequestDto save(Long userId, Long eventId) {
         if (isRepeat(userId, eventId)) {
@@ -100,10 +95,6 @@ public class RequestService {
         return RequestMapper.listToDto(requestRepository.findAllByEventId(eventId));
     }
 
-    //Если лимит превышен, то 409 ++
-    //Если лимит 0, то подтверждение не требуется?++
-    //Статус можно менять только для пендингов ++
-    //Если в процессе подтверждения, лимит исчерпается, то все не вошедшие в лимит отклоняются ++
     @Transactional
     public RequestersStatusUpdateResponseDto updateRequest(Long userId, Long eventId, RequestersStatusUpdateDto dto) {
 
@@ -119,30 +110,14 @@ public class RequestService {
             dtoOut.getConfirmedRequests().addAll(RequestMapper.listToDto(requestList));
             return dtoOut;
         }
-        if (dto.getStatus() != RequestStatus.CONFIRMED && dto.getStatus() != RequestStatus.REJECTED) {
-            throw new ApplicationRulesViolationException("Можно либо подтвердить запрос либо отказать в запросе!");
-        }
-        if (requestList.stream().anyMatch(request -> request.getStatus() != RequestStatus.PENDING)) {
-            throw new ApplicationRulesViolationException("Статус одной или нескольких заявок не \"PENDING\"!");
-        }
-        int numOfFreeSeats = event.getParticipantLimit() - getNumOfTakenPlaces(eventId);
-        if (numOfFreeSeats == 0) {
-            throw new ApplicationRulesViolationException("Мест нет!");
-        }
-
-        if (numOfFreeSeats >= dto.getRequestIds().size() || dto.getStatus() == RequestStatus.REJECTED) {
-            requestList.forEach(request -> request.setStatus(dto.getStatus()));
-
-        } else {
-            requestList.forEach(request -> request.setStatus(RequestStatus.REJECTED));
-            requestList.stream().limit(numOfFreeSeats).forEach(request -> request.setStatus(RequestStatus.CONFIRMED));
-        }
+        checkToUpdateStatus(dto);
+        checkOnlyPendingStatus(requestList);
+        setUserRequestsStatus(eventId, dto, event, requestList);
         requestRepository.saveAll(requestList);
         List<Request> confirmedRequests = new ArrayList<>();
         List<Request> rejectedRequests = new ArrayList<>();
         for (Request request : requestList) {
             if (request.getStatus() == RequestStatus.CONFIRMED) {
-
                 confirmedRequests.add(request);
             } else {
                 rejectedRequests.add(request);
@@ -169,5 +144,30 @@ public class RequestService {
         return requestRepository.countAllByEventIdAndStatus(eventId, RequestStatus.CONFIRMED);
     }
 
+    private void setUserRequestsStatus(Long eventId, RequestersStatusUpdateDto dto, Event event, List<Request> requestList) {
+        int numOfFreeSeats = event.getParticipantLimit() - getNumOfTakenPlaces(eventId);
+        if (numOfFreeSeats == 0) {
+            throw new ApplicationRulesViolationException("Мест нет!");
+        }
 
+        if (numOfFreeSeats >= dto.getRequestIds().size() || dto.getStatus() == RequestStatus.REJECTED) {
+            requestList.forEach(request -> request.setStatus(dto.getStatus()));
+
+        } else {
+            requestList.forEach(request -> request.setStatus(RequestStatus.REJECTED));
+            requestList.stream().limit(numOfFreeSeats).forEach(request -> request.setStatus(RequestStatus.CONFIRMED));
+        }
+    }
+
+    private static void checkOnlyPendingStatus(List<Request> requestList) {
+        if (requestList.stream().anyMatch(request -> request.getStatus() != RequestStatus.PENDING)) {
+            throw new ApplicationRulesViolationException("Статус одной или нескольких заявок не \"PENDING\"!");
+        }
+    }
+
+    private static void checkToUpdateStatus(RequestersStatusUpdateDto dto) {
+        if (dto.getStatus() != RequestStatus.CONFIRMED && dto.getStatus() != RequestStatus.REJECTED) {
+            throw new ApplicationRulesViolationException("Можно либо подтвердить запрос либо отказать в запросе!");
+        }
+    }
 }
