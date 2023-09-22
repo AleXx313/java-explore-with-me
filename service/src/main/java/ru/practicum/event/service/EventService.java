@@ -15,6 +15,7 @@ import ru.practicum.event.model.Event;
 import ru.practicum.event.model.EventState;
 import ru.practicum.event.model.UpdateState;
 import ru.practicum.event.repository.EventRepository;
+import ru.practicum.event.repository.EventRepositoryQDSL;
 import ru.practicum.exception.ApplicationRulesViolationException;
 import ru.practicum.exception.ModelNotFoundException;
 import ru.practicum.exception.CustomBadRequestException;
@@ -35,8 +36,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class EventService {
-    //Репозиторий сущности
+    //Репозитории сущности
     private final EventRepository eventRepository;
+    private final EventRepositoryQDSL eventRepositoryQDSL;
     //Сервисы задействованных сущностей
     private final UserService userService;
     private final CategoryService categoryService;
@@ -149,27 +151,23 @@ public class EventService {
                 //Есть поиск по категориям
                 if (paid != null) {
                     //Есть поиск по наличию оплаты
-                    filteredList = eventRepository
-                            .findAllByAnnotationContainsIgnoreCaseOrDescriptionContainsIgnoreCaseAndCategoryIdIsInAndPaidAndEventDateIsBetweenAndState(
-                                    text, text, categories, paid, rangeStart, rangeEnd, EventState.PUBLISHED);
+                    filteredList = eventRepositoryQDSL.findByTextAndCategoryAndIsPaid(
+                            text, categories, paid, rangeStart, rangeEnd, EventState.PUBLISHED);
                 } else {
                     //Нет поиска по наличию оплаты
-                    filteredList = eventRepository
-                            .findAllByAnnotationContainsIgnoreCaseOrDescriptionContainsIgnoreCaseAndCategoryIdIsInAndEventDateIsBetweenAndState(
-                                    text, text, categories, rangeStart, rangeEnd, EventState.PUBLISHED);
+                    filteredList = eventRepositoryQDSL.findByTextAndCategory(
+                            text, categories, rangeStart, rangeEnd, EventState.PUBLISHED);
                 }
             } else {
                 //Нет поиска по категории
                 if (paid != null) {
                     //Есть поиск по наличию оплаты
-                    filteredList = eventRepository
-                            .findAllByAnnotationContainsIgnoreCaseOrDescriptionContainsIgnoreCaseAndPaidAndEventDateIsBetweenAndState(
-                                    text, text, paid, rangeStart, rangeEnd, EventState.PUBLISHED);
+                    filteredList = eventRepositoryQDSL.findByTextAndIsPaid(
+                            text, paid, rangeStart, rangeEnd, EventState.PUBLISHED);
                 } else {
                     //Нет поиска по наличию оплаты
-                    filteredList = eventRepository
-                            .findAllByAnnotationContainsIgnoreCaseOrDescriptionContainsIgnoreCaseAndEventDateIsBetweenAndState(
-                                    text, text, rangeStart, rangeEnd, EventState.PUBLISHED);
+                    filteredList = eventRepositoryQDSL.findByText(
+                            text, rangeStart, rangeEnd, EventState.PUBLISHED);
                 }
             }
         } else {
@@ -178,24 +176,22 @@ public class EventService {
                 //Есть поиск по категориям
                 if (paid != null) {
                     //Есть поиск по наличию оплаты
-                    filteredList = eventRepository
-                            .findAllByCategoryIdIsInAndPaidAndEventDateIsBetweenAndState(
-                                    categories, paid, rangeStart, rangeEnd, EventState.PUBLISHED);
+                    filteredList = eventRepositoryQDSL.findByCategoryAndIsPaid(
+                            categories, paid, rangeStart, rangeEnd, EventState.PUBLISHED);
                 } else {
                     //Нет поиска по наличию оплаты
-                    filteredList = eventRepository
-                            .findAllByCategoryIdIsInAndEventDateIsBetweenAndState(
-                                    categories, rangeStart, rangeEnd, EventState.PUBLISHED);
+                    filteredList = eventRepositoryQDSL.findByCategory(
+                            categories, rangeStart, rangeEnd, EventState.PUBLISHED);
                 }
             } else {
                 //Нет поиска по категории
                 if (paid != null) {
                     //Есть поиск по наличию оплаты
-                    filteredList = eventRepository.findAllByPaidAndEventDateIsBetweenAndState(
+                    filteredList = eventRepositoryQDSL.findByIsPaid(
                             paid, rangeStart, rangeEnd, EventState.PUBLISHED);
                 } else {
                     //Нет поиска по наличию оплаты
-                    filteredList = eventRepository.findAllByEventDateIsBetweenAndState(
+                    filteredList = eventRepositoryQDSL.findByDefaultFilters(
                             rangeStart, rangeEnd, EventState.PUBLISHED);
                 }
             }
@@ -282,45 +278,37 @@ public class EventService {
             if (!states.isEmpty()) {
                 //Категории
                 if (!categories.isEmpty()) {
-                    filteredList = eventRepository
-                            .findAllByInitiatorIdIsInAndStateIsInAndCategoryIdIsInAndEventDateIsBetween(
-                                    users, enumStates, categories, rangeStart, rangeEnd);
+                    filteredList = eventRepositoryQDSL.findByUsersAndCategoriesAndStates(
+                            users, categories, enumStates, rangeStart, rangeEnd);
                 } else {
-                    filteredList = eventRepository
-                            .findAllByInitiatorIdIsInAndStateIsInAndEventDateIsBetween(
-                                    users, enumStates, rangeStart, rangeEnd);
+                    filteredList = eventRepositoryQDSL.findByUsersAndStates(
+                            users, enumStates, rangeStart, rangeEnd);
                 }
             } else {
                 if (!categories.isEmpty()) {
-                    filteredList = eventRepository
-                            .findAllByInitiatorIdIsInAndCategoryIdIsInAndEventDateIsBetween(
-                                    users, categories, rangeStart, rangeEnd);
+                    filteredList = eventRepositoryQDSL.findByUsersAndCategories(
+                            users, categories, rangeStart, rangeEnd);
                 } else {
-                    filteredList = eventRepository
-                            .findAllByInitiatorIdIsInAndEventDateIsBetween(
-                                    users, rangeStart, rangeEnd);
+                    filteredList = eventRepositoryQDSL.findByUsers(
+                            users, rangeStart, rangeEnd);
                 }
             }
         } else {
             if (!states.isEmpty()) {
                 if (!categories.isEmpty()) {
-                    filteredList = eventRepository
-                            .findAllByStateIsInAndCategoryIdIsInAndEventDateIsBetween(
-                                    enumStates, categories, rangeStart, rangeEnd);
+                    filteredList = eventRepositoryQDSL.findByCategoriesAndStates(
+                            categories, enumStates, rangeStart, rangeEnd);
                 } else {
-                    filteredList = eventRepository
-                            .findAllByStateIsInAndEventDateIsBetween(
-                                    enumStates, rangeStart, rangeEnd);
+                    filteredList = eventRepositoryQDSL.findByStates(
+                            enumStates, rangeStart, rangeEnd);
                 }
             } else {
                 if (!categories.isEmpty()) {
-                    filteredList = eventRepository
-                            .findAllByCategoryIdIsInAndEventDateIsBetween(
-                                    categories, rangeStart, rangeEnd);
+                    filteredList = eventRepositoryQDSL.findByCategories(
+                            categories, rangeStart, rangeEnd);
                 } else {
-                    filteredList = eventRepository
-                            .findAllByEventDateIsBetween(
-                                    rangeStart, rangeEnd);
+                    filteredList = eventRepositoryQDSL.findByDefaultFiltersAdmin(
+                            rangeStart, rangeEnd);
                 }
             }
         }
@@ -339,7 +327,6 @@ public class EventService {
         //Собираем подтвержденных участников
         result.forEach(e -> e.setConfirmedRequests(getNumOfTakenPlaces(e.getId())));
 
-        //
         int upperBound = (Math.min((from + size), result.size()));
         result = result.subList(from, upperBound);
         log.info("Получен запрос списка событий от администратора!");
