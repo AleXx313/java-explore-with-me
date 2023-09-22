@@ -16,7 +16,6 @@ import ru.practicum.event.model.Event;
 import ru.practicum.event.service.EventService;
 import ru.practicum.exception.ModelNotFoundException;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,6 +28,7 @@ public class CompilationService {
     private final CompilationRepository compilationRepository;
     private final EventService eventService;
 
+    //API
     @Transactional
     public CompilationResponseDto save(NewCompilationRequest dto) {
         Compilation compilation = CompilationMapper.dtoToCompilation(dto);
@@ -37,8 +37,6 @@ public class CompilationService {
                     .map(eventService::findById)
                     .collect(Collectors.toSet());
             compilation.setEvents(events);
-        } else {
-            compilation.setEvents(new HashSet<>());
         }
         log.info("Сохранена подборка событий - {}", compilation.getTitle());
         return getCompilationResponseDto(compilation);
@@ -91,7 +89,7 @@ public class CompilationService {
         return getCompilationResponseDto(compilation);
     }
 
-    //Внутреннее пользование
+    //Utility
     private CompilationResponseDto getCompilationResponseDto(Compilation compilation) {
         Compilation updatedCompilation = compilationRepository.save(compilation);
         CompilationResponseDto result = CompilationMapper.compilationToDto(updatedCompilation);

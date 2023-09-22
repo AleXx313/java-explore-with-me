@@ -34,6 +34,7 @@ public class RequestService {
     private final EventService eventService;
     private final UserService userService;
 
+    //API
     @Transactional
     public ParticipantRequestDto save(Long userId, Long eventId) {
         if (isRepeat(userId, eventId)) {
@@ -129,13 +130,13 @@ public class RequestService {
         return dtoOut;
     }
 
-    //Внутреннее пользование
-    public Request findRequest(Long requestId) {
+    //Utility
+    private Request findRequest(Long requestId) {
         return requestRepository.findById(requestId).orElseThrow(
                 () -> new ModelNotFoundException(String.format("Запрос с id - %d не найден!", requestId)));
     }
 
-    public boolean isRepeat(Long userId, Long eventId) {
+    private boolean isRepeat(Long userId, Long eventId) {
         Optional<Request> request = requestRepository.findByRequesterIdAndEventId(userId, eventId);
         return request.isPresent();
     }

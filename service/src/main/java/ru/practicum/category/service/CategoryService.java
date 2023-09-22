@@ -58,7 +58,8 @@ public class CategoryService {
         return CategoryMapper.categoryToDto(category);
     }
 
-    //Внутреннее пользование
+    //Utility
+    @Transactional(readOnly = true)
     public Category findById(Long id) {
         return categoryRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("Категория не найдена!"));
     }

@@ -47,6 +47,7 @@ public class UserService {
     }
 
     //Внутреннее пользование
+    @Transactional(readOnly = true)
     public User findById(Long id) {
         return userRepository.findById(id).orElseThrow(
                 () -> new ModelNotFoundException(String.format("Пользователь с id %d отсутствует", id)));

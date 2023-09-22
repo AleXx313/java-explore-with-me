@@ -44,6 +44,7 @@ public class EventService {
 
     private final StatsClient statsClient;
 
+    //API
     @Transactional
     public EventBaseResponseDto save(long userId, EventRequestDto eventRequestDto) {
         if (eventRequestDto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
@@ -379,7 +380,8 @@ public class EventService {
         return result;
     }
 
-    //Внутреннее пользование
+    //Utility
+    @Transactional(readOnly = true)
     public Event findById(Long id) {
         return eventRepository.findById(id).orElseThrow(() -> new ModelNotFoundException("Событие не найдено!"));
     }
