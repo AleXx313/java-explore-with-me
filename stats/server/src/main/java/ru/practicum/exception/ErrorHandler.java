@@ -20,6 +20,14 @@ public class ErrorHandler {
                 HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler({CustomBadRequestException.class})
+    public ResponseEntity<ErrorResponse> handleCustomBadRequestException(final CustomBadRequestException e) {
+        log.info("Получен статус 400 BadRequest {}", e.getMessage());
+        return new ResponseEntity<>(
+                new ErrorResponse("Передан некорректный объект!", e.getMessage()),
+                HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler({MissingServletRequestParameterException.class})
     public ResponseEntity<ErrorResponse> handleWrongParameterException(final MissingServletRequestParameterException e) {
         log.info("Получен статус 400 BadRequest {}", e.getMessage());
