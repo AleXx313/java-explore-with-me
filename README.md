@@ -1,6 +1,8 @@
 # java-explore-with-me
 Template repository for ExploreWithMe project.
 
+[Ссылка на пуллреквест](https://github.com/AleXx313/java-explore-with-me/pull/6)
+
 ## Комментарии
 ### Описание
 - Комментарии могут оставлять только пользователи. 
