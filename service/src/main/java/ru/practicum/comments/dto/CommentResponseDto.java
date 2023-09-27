@@ -23,4 +23,6 @@ public class CommentResponseDto {
     private LocalDateTime created;
     private Long eventId;
     private Long userId;
+    private long likes;
+    private long dislikes;
 }

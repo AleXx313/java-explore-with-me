@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.practicum.user.model.User;
 
-import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -17,7 +16,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @Embeddable
-public class ReactionId  implements Serializable {
+public class ReactionId implements Serializable {
     @ManyToOne
     @JoinColumn(name = "comment_id")
     private Comment comment;

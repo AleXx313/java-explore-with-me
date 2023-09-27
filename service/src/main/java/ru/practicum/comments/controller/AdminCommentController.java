@@ -14,8 +14,9 @@ import ru.practicum.comments.service.CommentService;
 public class AdminCommentController {
 
     private final CommentService commentService;
+
     @DeleteMapping
-    public ResponseEntity<?> delete (@PathVariable (value = "commentId") Long commentId){
+    public ResponseEntity<?> delete(@PathVariable(value = "commentId") Long commentId) {
         commentService.deleteByAdmin(commentId);
         return ResponseEntity.noContent().build();
     }

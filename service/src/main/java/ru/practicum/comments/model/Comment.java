@@ -39,5 +39,4 @@ public class Comment implements Serializable {
     private User user;
 
 
-
 }

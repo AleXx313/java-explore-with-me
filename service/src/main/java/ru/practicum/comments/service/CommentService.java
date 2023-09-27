@@ -1,6 +1,7 @@
 package ru.practicum.comments.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.comments.dto.CommentResponseDto;
 import ru.practicum.comments.dto.NewCommentDto;
@@ -12,7 +13,9 @@ import ru.practicum.comments.model.ReactionId;
 import ru.practicum.comments.repository.CommentRepository;
 import ru.practicum.comments.repository.ReactionRepository;
 import ru.practicum.event.model.Event;
+import ru.practicum.event.model.EventState;
 import ru.practicum.event.repository.EventRepository;
+import ru.practicum.exception.ApplicationRulesViolationException;
 import ru.practicum.exception.CustomBadRequestException;
 import ru.practicum.exception.ModelNotFoundException;
 import ru.practicum.user.model.User;
@@ -23,6 +26,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
@@ -35,16 +39,20 @@ public class CommentService {
         User user = userService.findById(userId);
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new ModelNotFoundException(
                 "Событие с id - " + eventId + " отсутствует"));
+        if (event.getState() != EventState.PUBLISHED) {
+            throw new ApplicationRulesViolationException("Нельзя комментировать неопубликованное событие!");
+        }
         if (event.getInitiator().getId().equals(userId)) {
-            throw new CustomBadRequestException("Нельзя комментировать свое событие!");
+            throw new ApplicationRulesViolationException("Нельзя комментировать свое событие!");
         }
         if (commentRepository.findAllByEventIdAndUserId(eventId, userId).isPresent()) {
-            throw new CustomBadRequestException("Можно оставить только 1 комментарий!");
+            throw new ApplicationRulesViolationException("Можно оставить только 1 комментарий!");
         }
         Comment comment = CommentMapper.dtoToComment(dto);
         comment.setUser(user);
         comment.setEvent(event);
         Comment savedComment = commentRepository.save(comment);
+        log.info("Комментарий с id - {} сохранен!", savedComment.getId());
         return CommentMapper.commentToResponseDto(savedComment);
     }
 
@@ -52,7 +60,7 @@ public class CommentService {
         User user = userService.findById(userId);
         Comment comment = findById(commentId);
         if (!comment.getUser().getId().equals(userId)) {
-            throw new CustomBadRequestException("Редактировать можно только свой комментарий!");
+            throw new ApplicationRulesViolationException("Редактировать можно только свой комментарий!");
         }
         if (dto.getStatus() != null && !comment.getStatus().equals(dto.getStatus())) {
             comment.setStatus(dto.getStatus());
@@ -61,6 +69,7 @@ public class CommentService {
             comment.setContent(dto.getContent());
         }
         Comment savedComment = commentRepository.save(comment);
+        log.info("Комментарий с id - {} обновлен!", savedComment.getId());
         return CommentMapper.commentToResponseDto(savedComment);
     }
 
@@ -71,22 +80,27 @@ public class CommentService {
             throw new CustomBadRequestException("Нельзя удалить чужой комментарий!");
         }
         commentRepository.deleteById(commentId);
+        log.info("Комментарий с id - {} удален!", commentId);
     }
 
     public void deleteByAdmin(Long commentId) {
         findById(commentId);
         commentRepository.deleteById(commentId);
+        log.info("Комментарий с id - {} удален администратором!", commentId);
     }
 
     public List<CommentResponseDto> findAllByUser(Long userId) {
+        log.info("Запрос на получение комментариев пользователя с id - {}!", userId);
         userService.findById(userId);
         return commentRepository.findAllByUserId(userId)
                 .stream()
                 .map(CommentMapper::commentToResponseDto)
+                .peek(this::setLikesDislikes)
                 .collect(Collectors.toList());
     }
 
     public List<CommentResponseDto> findAllByEvent(Long userId, Long eventId) {
+        log.info("Запрос на получение комментариев события с id - {}!", eventId);
         try {
             userService.findById(userId);
         } catch (ModelNotFoundException e) {
@@ -98,6 +112,7 @@ public class CommentService {
         return commentRepository.findAllByEventId(eventId)
                 .stream()
                 .map(CommentMapper::commentToResponseDto)
+                .peek(this::setLikesDislikes)
                 .collect(Collectors.toList());
     }
 
@@ -114,13 +129,16 @@ public class CommentService {
             reaction = reactionOptional.get();
             if (reaction.getPositive().equals(positive)) {
                 reactionRepository.deleteById(reactionId);
+                log.info("Удалена реакция пользователя с id = {} на комментарий с id - {}!", userId, commentId);
             } else {
                 reaction.setPositive(positive);
                 reactionRepository.save(reaction);
+                log.info("Сохранена реакция пользователя с id = {} на комментарий с id - {}!", userId, commentId);
             }
         } else {
             reaction = Reaction.builder().reactionId(reactionId).positive(positive).build();
             reactionRepository.save(reaction);
+            log.info("Сохранена реакция пользователя с id = {} на комментарий с id - {}!", userId, commentId);
         }
     }
 
@@ -128,5 +146,12 @@ public class CommentService {
     private Comment findById(Long commentId) {
         return commentRepository.findById(commentId).orElseThrow(() -> new ModelNotFoundException(
                 "Комментарий с id " + commentId + " не найден!"));
+    }
+
+    private void setLikesDislikes(CommentResponseDto dto) {
+        long likes = reactionRepository.countAllByReactionIdCommentIdAndPositive(dto.getId(), true);
+        long dislikes = reactionRepository.countAllByReactionIdCommentIdAndPositive(dto.getId(), false);
+        dto.setLikes(likes);
+        dto.setDislikes(dislikes);
     }
 }
