@@ -3,6 +3,7 @@ package ru.practicum.comments.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.comments.dto.CommentResponseDto;
 import ru.practicum.comments.dto.NewCommentDto;
 import ru.practicum.comments.dto.UpdateCommentDto;
@@ -28,13 +29,15 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class CommentService {
+public class CommentService implements CommentServiceInterface {
     private final CommentRepository commentRepository;
     private final ReactionRepository reactionRepository;
 
     private final UserService userService;
     private final EventRepository eventRepository;
 
+    @Override
+    @Transactional
     public CommentResponseDto save(Long userId, Long eventId, NewCommentDto dto) {
         User user = userService.findById(userId);
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new ModelNotFoundException(
@@ -56,6 +59,8 @@ public class CommentService {
         return CommentMapper.commentToResponseDto(savedComment);
     }
 
+    @Override
+    @Transactional
     public CommentResponseDto update(Long userId, Long commentId, UpdateCommentDto dto) {
         User user = userService.findById(userId);
         Comment comment = findById(commentId);
@@ -73,6 +78,8 @@ public class CommentService {
         return CommentMapper.commentToResponseDto(savedComment);
     }
 
+    @Override
+    @Transactional
     public void deleteByUser(Long userId, Long commentId) {
         User user = userService.findById(userId);
         Comment comment = findById(commentId);
@@ -83,12 +90,16 @@ public class CommentService {
         log.info("Комментарий с id - {} удален!", commentId);
     }
 
+    @Override
+    @Transactional
     public void deleteByAdmin(Long commentId) {
         findById(commentId);
         commentRepository.deleteById(commentId);
         log.info("Комментарий с id - {} удален администратором!", commentId);
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public List<CommentResponseDto> findAllByUser(Long userId) {
         log.info("Запрос на получение комментариев пользователя с id - {}!", userId);
         userService.findById(userId);
@@ -99,6 +110,8 @@ public class CommentService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public List<CommentResponseDto> findAllByEvent(Long userId, Long eventId) {
         log.info("Запрос на получение комментариев события с id - {}!", eventId);
         try {
@@ -116,6 +129,8 @@ public class CommentService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional
     public void doReaction(Long userId, Long commentId, Boolean positive) {
         User user = userService.findById(userId);
         Comment comment = findById(commentId);
@@ -124,9 +139,7 @@ public class CommentService {
         }
         ReactionId reactionId = new ReactionId(comment, user);
         Optional<Reaction> reactionOptional = reactionRepository.findById(reactionId);
-        Reaction reaction;
-        if (reactionOptional.isPresent()) {
-            reaction = reactionOptional.get();
+        reactionOptional.ifPresentOrElse(reaction -> {
             if (reaction.getPositive().equals(positive)) {
                 reactionRepository.deleteById(reactionId);
                 log.info("Удалена реакция пользователя с id = {} на комментарий с id - {}!", userId, commentId);
@@ -135,11 +148,10 @@ public class CommentService {
                 reactionRepository.save(reaction);
                 log.info("Сохранена реакция пользователя с id = {} на комментарий с id - {}!", userId, commentId);
             }
-        } else {
-            reaction = Reaction.builder().reactionId(reactionId).positive(positive).build();
-            reactionRepository.save(reaction);
+        }, () -> {
+            reactionRepository.save(Reaction.builder().reactionId(reactionId).positive(positive).build());
             log.info("Сохранена реакция пользователя с id = {} на комментарий с id - {}!", userId, commentId);
-        }
+        });
     }
 
     //Utility
